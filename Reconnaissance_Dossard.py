@@ -104,7 +104,26 @@ TRANSLATIONS = {
         "download_button": "📦 Scarica ZIP delle foto trovate",
         "footer": "💻 Sviluppato da <strong>Théophile Sénéchal</strong> • 2025",
         "show_stats": "Mostra le statistiche dopo la ricerca"
-    }
+    },
+    "pt": {
+    "title": "🏃‍♂️ Adkemer - An diskenn klask",
+    "upload_label": "Enviar um arquivo ZIP com fotos JPG",
+    "confidence_threshold": "Limite mínimo de confiança para reconhecimento de dorsais",
+    "search_heading": "Números de dorsal a procurar",
+    "add_bib": "➕ Adicionar um número de dorsal",
+    "remove_bib": "➖ Remover um número de dorsal",
+    "search_button": "🔍 Iniciar busca",
+    "no_zip_warning": "Por favor, envie um arquivo ZIP com as fotos.",
+    "no_bib_warning": "Por favor, insira pelo menos um número de dorsal.",
+    "processing_images": "Processando imagens...",
+    "images_processed": "**🖼️ {}/{} imagem(ns) processada(s)**",
+    "no_match": "Nenhuma foto encontrada com os dorsais especificados.",
+    "found_match": "{} foto(s) encontrada(s) com os dorsais especificados.",
+    "preview_title": "### Pré-visualização das fotos detectadas",
+    "download_button": "📦 Baixar ZIP com as fotos encontradas",
+    "footer": "💻 Desenvolvido por <strong>Théophile Sénéchal</strong> • 2025",
+    "show_stats": "Mostrar estatísticas após a busca"
+}
 }
 
 def renommer_photos_in_memory(zip_in):
@@ -125,21 +144,9 @@ def detecter_dossards_image(image_bytes, reader, seuil):
 
 def main():
     st.set_page_config(page_title="Adkemer", page_icon="🏃‍♂️", layout="centered")
-
-    lang = st.sidebar.selectbox(
-    "🌐 Language", 
-    ["Français", "English", "Español", "Deutsch", "Italiano"]
-    )
-    lang_map = {
-    "Français": "fr",
-    "English": "en",
-    "Español": "es",
-    "Deutsch": "de",
-    "Italiano": "it"
-    }
-    lang_code = lang_map.get(lang, "fr")
+    lang = st.sidebar.selectbox("🌐 Langue / Language", ["Français", "English", "Español", "Deutsch", "Italiano", "Português"])
+    lang_code = {"Français": "fr", "English": "en", "Español": "es", "Deutsch": "de", "Italiano": "it", "Português": "pt"}.get(lang, "fr")
     T = TRANSLATIONS[lang_code]
-
 
     st.title(T["title"])
 
@@ -150,6 +157,7 @@ def main():
         value=0.95,
         step=0.01
     )
+    min_dossard_length = st.slider(T["min_bib_length"], min_value=1, max_value=6, value=4)
 
     uploaded_zip = st.file_uploader(T["upload_label"], type=["zip"])
 
@@ -218,7 +226,8 @@ def main():
 
             if afficher_stats:
                 tous_dossards = list(itertools.chain.from_iterable(df['dossards']))
-                compteur_dossards = Counter(tous_dossards)
+                dossards_filtrés = [d for d in tous_dossards if len(d) >= min_dossard_length]
+                compteur_dossards = Counter(dossards_filtrés)
                 top_df = pd.DataFrame(compteur_dossards.items(), columns=["Dossard", "Nombre de photos"])
                 top_df = top_df.sort_values("Nombre de photos", ascending=False).head(10).reset_index(drop=True)
                 st.markdown("### 📈 Top 10 des dossards les plus détectés")
